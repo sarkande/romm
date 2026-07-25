@@ -93,15 +93,30 @@ async def trigger_scan(
             detail=f"Unknown scan type '{scan_type}'.",
         ) from exc
 
+    # An unknown slug is not an error: it is the very case a scan exists
+    # for. A platform only enters the database once a scan has found files
+    # under its folder, so the first drop into a brand new folder always
+    # names a platform RomM has never heard of. Refusing it made the
+    # endpoint useless on an empty library — the one place it matters most.
+    #
+    # The filter is an optimisation, not a contract: when any slug is
+    # unknown we widen to the whole library rather than scan a subset that
+    # would skip the new folder.
     platform_ids: list[int] = []
+    unknown: list[str] = []
     for fs_slug in platform_slugs or []:
         platform = db_platform_handler.get_platform_by_fs_slug(fs_slug)
         if platform is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Unknown platform '{fs_slug}'.",
-            )
-        platform_ids.append(platform.id)
+            unknown.append(fs_slug)
+        else:
+            platform_ids.append(platform.id)
+
+    if unknown:
+        log.info(
+            f"Scan requested for unknown platform(s) {', '.join(unknown)}; "
+            "scanning the whole library so the new folder is picked up."
+        )
+        platform_ids = []
 
     job = low_prio_queue.enqueue(
         scan_platforms,
