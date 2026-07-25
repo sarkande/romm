@@ -47,6 +47,7 @@ from endpoints.platform import router as platform_router
 from endpoints.play_sessions import router as play_sessions_router
 from endpoints.roms import router as rom_router
 from endpoints.saves import router as saves_router
+from endpoints.scan import router as scan_router
 from endpoints.screenshots import router as screenshots_router
 from endpoints.search import router as search_router
 from endpoints.states import router as states_router
@@ -168,6 +169,7 @@ app.include_router(saves_router, prefix="/api")
 app.include_router(states_router, prefix="/api")
 app.include_router(sync_router, prefix="/api")
 app.include_router(tasks_router, prefix="/api")
+app.include_router(scan_router, prefix="/api")
 app.include_router(feeds_router, prefix="/api")
 app.include_router(configs_router, prefix="/api")
 app.include_router(stats_router, prefix="/api")
