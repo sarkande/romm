@@ -50,7 +50,6 @@ from endpoints.saves import router as saves_router
 from endpoints.scan import router as scan_router
 from endpoints.screenshots import router as screenshots_router
 from endpoints.search import router as search_router
-from endpoints.signup import router as signup_router
 from endpoints.states import router as states_router
 from endpoints.stats import router as stats_router
 from endpoints.streaming import router as streaming_router
@@ -128,9 +127,6 @@ if not IS_PYTEST_RUN and not DISABLE_CSRF_PROTECTION:
         exempt_urls=[
             re.compile(r"^/api/token.*"),
             re.compile(r"^/api/client-tokens/exchange"),
-            # No session to carry a CSRF cookie: the caller has no account
-            # yet, and this is the call that creates one.
-            re.compile(r"^/api/users/signup/?$"),
             re.compile(r"^/api/client-tokens/pair/.+/status"),
             re.compile(r"^/api/auth/device/init/?$"),
             re.compile(r"^/api/auth/device/token/?$"),
@@ -160,7 +156,6 @@ app.include_router(heartbeat_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(activity_router, prefix="/api")
 app.include_router(user_router, prefix="/api")
-app.include_router(signup_router, prefix="/api")
 app.include_router(client_tokens_router, prefix="/api")
 app.include_router(device_router, prefix="/api")
 app.include_router(device_auth_router, prefix="/api")
