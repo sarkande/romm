@@ -128,6 +128,12 @@ FLASHPOINT_API_ENABLED: Final[bool] = safe_str_to_bool(
 # HOWLONGTOBEAT
 HLTB_API_ENABLED: Final[bool] = safe_str_to_bool(_get_env("HLTB_API_ENABLED"))
 
+# SIGNUP
+# Self-registration is off unless this is set, and callers must present it.
+# An instance reachable from the internet with open registration hands its
+# whole library to anyone who finds the URL.
+ROMCADE_SIGNUP_SECRET: Final[str] = _get_env("ROMCADE_SIGNUP_SECRET", "")
+
 # AUTH
 ROMM_AUTH_SECRET_KEY: Final[str] = _get_env("ROMM_AUTH_SECRET_KEY", "")
 if not ROMM_AUTH_SECRET_KEY:
