@@ -14,6 +14,39 @@ TAG_GROUP_REGEX = re.compile(r"(?:\s*(?:\([^)]*\)|\[[^]]*\]))+\s*$")
 # Matches a trailing file extension, including multi-part ones like ".tar.gz".
 EXTENSION_REGEX = re.compile(r"\.(([a-z]+\.)*\w+)$")
 
+# Matches an article pushed to the end of a title by the cataloguing
+# convention: "Legend of Zelda, The" or "Legend of Zelda, The - Oracle of
+# Ages". The article sits either at the very end or just before a
+# subtitle, so both are matched.
+TRAILING_ARTICLE_REGEX = re.compile(
+    r",\s+(The|A|An|Le|La|Les|L'|Un|Une|Der|Die|Das|Il|Lo|Gli|El|Los|Las|O|Os|As)"
+    r"(?=\s+-\s+|\s*:|\s*$)",
+    re.IGNORECASE,
+)
+
+
+def front_trailing_article(name: str) -> str:
+    """Put a trailing article back where a reader expects it.
+
+    Dumps follow the cataloguing convention of pushing the article to the
+    end so that titles file under their first significant word. That is a
+    property of the *index*, not of the title: "Legend of Zelda, The"
+    reads as a database row, not as a game.
+
+    Sorting loses nothing — `compute_name_sort_key` already strips a
+    LEADING article before comparing, which is precisely the order this
+    convention was invented to produce.
+    """
+    match = TRAILING_ARTICLE_REGEX.search(name)
+    if not match:
+        return name
+
+    article = match.group(1)
+    rest = (name[: match.start()] + name[match.end() :]).strip()
+    # "L'" binds to the next word; every other article takes a space.
+    separator = "" if article.endswith("'") else " "
+    return f"{article}{separator}{rest}"
+
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
@@ -31,7 +64,7 @@ def compute_file_name_no_tags(file_name: str) -> str:
     legitimately contains parentheses/brackets mid-name is not truncated.
     """
     name = compute_file_name_no_ext(file_name)
-    return TAG_GROUP_REGEX.sub("", name).strip()
+    return front_trailing_article(TAG_GROUP_REGEX.sub("", name).strip())
 
 
 def compute_file_extension(file_name: str) -> str:
