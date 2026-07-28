@@ -258,6 +258,8 @@ LIBRETRO_PLATFORM_LIST: Final[dict[UPS, str]] = {
     UPS.PSX: "Sony - PlayStation",
     UPS.PS2: "Sony - PlayStation 2",
     UPS.PSP: "Sony - PlayStation Portable",
+    UPS.PSVITA: "Sony - PlayStation Vita",
+    UPS.XBOX360: "Microsoft - Xbox 360",
     UPS.TIC_80: "TIC-80",
     UPS.TOMY_TUTOR: "Tomy - Tutor",
     UPS.SUPERVISION: "Watara - Supervision",
