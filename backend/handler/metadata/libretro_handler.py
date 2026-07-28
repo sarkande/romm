@@ -211,7 +211,7 @@ LIBRETRO_PLATFORM_LIST: Final[dict[UPS, str]] = {
     UPS.INTELLIVISION: "Mattel - Intellivision",
     UPS.MSX: "Microsoft - MSX",
     UPS.MSX2: "Microsoft - MSX2",
-    UPS.XBOX: "Microsoft - XBOX",
+    UPS.XBOX: "Microsoft - Xbox",
     UPS.PC_8800_SERIES: "NEC - PC Engine - TurboGrafx 16",
     UPS.PC_FX: "NEC - PC-FX",
     UPS.PC_9800_SERIES: "NEC - PC-98",
