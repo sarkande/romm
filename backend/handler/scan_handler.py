@@ -46,7 +46,11 @@ from logger.formatter import BLUE, LIGHTYELLOW
 from logger.formatter import highlight as hl
 from logger.logger import log
 from models.assets import Save, Screenshot, State
-from models.base import compute_file_name_no_tags_verbatim
+from models.base import (
+    compute_file_name_no_tags_verbatim,
+    front_trailing_article,
+    placeholder_key,
+)
 from models.firmware import Firmware
 from models.platform import Platform
 from models.rom import Rom, RomFile, RomFileCategory
@@ -1014,24 +1018,40 @@ async def scan_rom(
         # Both the existing name and the seeded rom_attrs name can hold the
         # placeholder. Discard either when it's a placeholder so the parsed
         # filename fallback can win.
+        #
         # The pre-fronting form counts as a placeholder too, so a rescan
-        # can correct names stored before the article moved. Otherwise
-        # they no longer match the derived value, pass for hand-written,
-        # and survive untouched — the rescan preserving precisely what it
-        # was run to fix.
-        placeholders = (
-            None,
-            "",
-            rom.fs_name,
-            fs_name_no_tags,
-            compute_file_name_no_tags_verbatim(rom_attrs["fs_name"]),
+        # can correct names stored before the article moved, and the
+        # comparison is loose (case, punctuation) rather than exact: see
+        # `placeholder_key`.
+        placeholder_keys = {
+            placeholder_key(value)
+            for value in (
+                rom.fs_name,
+                fs_name_no_tags,
+                compute_file_name_no_tags_verbatim(rom_attrs["fs_name"]),
+            )
+            if value
+        }
+        existing_name = (
+            None
+            if rom.name and placeholder_key(rom.name) in placeholder_keys
+            else rom.name
         )
-        existing_name = None if rom.name in placeholders else rom.name
         matched_name = rom_attrs.get("name")
-        matched_name = None if matched_name in placeholders else matched_name
+        matched_name = (
+            None
+            if matched_name and placeholder_key(matched_name) in placeholder_keys
+            else matched_name
+        )
+        winner = existing_name or matched_name or fs_name_no_tags
         rom_attrs.update(
             {
-                "name": existing_name or matched_name or fs_name_no_tags or None,
+                # Fronted regardless of where `winner` came from: a name
+                # matched by a metadata provider can carry the same
+                # trailing-article convention as a raw dump, for instance
+                # an ID lookup returning "Legend of Zelda, The - Phantom
+                # Hourglass" with no filename parsing involved at all.
+                "name": front_trailing_article(winner) if winner else None,
                 "summary": rom.summary or rom_attrs.get("summary") or None,
                 # Don't overwrite existing manually uploaded cover image
                 "url_cover": (

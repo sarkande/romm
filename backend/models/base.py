@@ -24,6 +24,9 @@ TRAILING_ARTICLE_REGEX = re.compile(
     re.IGNORECASE,
 )
 
+# Anything but letters and digits, for a loose comparison key.
+NON_ALNUM_REGEX = re.compile(r"[^a-z0-9]+")
+
 
 def front_trailing_article(name: str) -> str:
     """Put a trailing article back where a reader expects it.
@@ -33,7 +36,7 @@ def front_trailing_article(name: str) -> str:
     property of the *index*, not of the title: "Legend of Zelda, The"
     reads as a database row, not as a game.
 
-    Sorting loses nothing — `compute_name_sort_key` already strips a
+    Sorting loses nothing: `compute_name_sort_key` already strips a
     LEADING article before comparing, which is precisely the order this
     convention was invented to produce.
     """
@@ -46,6 +49,24 @@ def front_trailing_article(name: str) -> str:
     # "L'" binds to the next word; every other article takes a space.
     separator = "" if article.endswith("'") else " "
     return f"{article}{separator}{rest}"
+
+
+def placeholder_key(name: str) -> str:
+    """Loose form used to recognise a name derived from a filename.
+
+    The code that derives a placeholder name has changed shape over time:
+    lowercase "of" became "Of" in some runs, and the article moved from
+    just after the main title to the very end of the whole title in
+    others. A name stored under an earlier convention no longer matches
+    the placeholder byte for byte and would be mistaken for something a
+    person typed by hand, never getting the chance to be re-derived with
+    today's casing and article position.
+
+    Fronting the article before stripping case and punctuation makes the
+    two forms comparable regardless of where the source of either one put
+    it.
+    """
+    return NON_ALNUM_REGEX.sub("", front_trailing_article(name).lower())
 
 
 def utc_now() -> datetime:
