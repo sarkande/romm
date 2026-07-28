@@ -63,8 +63,21 @@ def compute_file_name_no_tags(file_name: str) -> str:
     Only tag groups at the end are removed (repeatedly), so a title that
     legitimately contains parentheses/brackets mid-name is not truncated.
     """
+    return front_trailing_article(compute_file_name_no_tags_verbatim(file_name))
+
+
+def compute_file_name_no_tags_verbatim(file_name: str) -> str:
+    """Same, but leaving a trailing article where the dump put it.
+
+    Only useful to recognise names stored before the article was fronted.
+    A rom keeps a name a user edited by hand, and tells the two apart by
+    comparing against the filename-derived value; once that value gained
+    the article, every previously stored name stopped matching and looked
+    hand-written. Without this, a rescan preserves exactly the names it
+    was meant to correct.
+    """
     name = compute_file_name_no_ext(file_name)
-    return front_trailing_article(TAG_GROUP_REGEX.sub("", name).strip())
+    return TAG_GROUP_REGEX.sub("", name).strip()
 
 
 def compute_file_extension(file_name: str) -> str:

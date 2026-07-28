@@ -46,6 +46,7 @@ from logger.formatter import BLUE, LIGHTYELLOW
 from logger.formatter import highlight as hl
 from logger.logger import log
 from models.assets import Save, Screenshot, State
+from models.base import compute_file_name_no_tags_verbatim
 from models.firmware import Firmware
 from models.platform import Platform
 from models.rom import Rom, RomFile, RomFileCategory
@@ -1013,7 +1014,18 @@ async def scan_rom(
         # Both the existing name and the seeded rom_attrs name can hold the
         # placeholder. Discard either when it's a placeholder so the parsed
         # filename fallback can win.
-        placeholders = (None, "", rom.fs_name, fs_name_no_tags)
+        # The pre-fronting form counts as a placeholder too, so a rescan
+        # can correct names stored before the article moved. Otherwise
+        # they no longer match the derived value, pass for hand-written,
+        # and survive untouched — the rescan preserving precisely what it
+        # was run to fix.
+        placeholders = (
+            None,
+            "",
+            rom.fs_name,
+            fs_name_no_tags,
+            compute_file_name_no_tags_verbatim(rom_attrs["fs_name"]),
+        )
         existing_name = None if rom.name in placeholders else rom.name
         matched_name = rom_attrs.get("name")
         matched_name = None if matched_name in placeholders else matched_name
